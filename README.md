@@ -1,2 +1,3 @@
 # os
-linux distribution
+
+script for creating a strata root filesystem

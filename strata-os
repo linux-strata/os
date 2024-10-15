@@ -1,0 +1,60 @@
+#!/bin/sh -e
+
+# /bin -> /usr -> /ata/worlds/fhs
+
+p () {
+    # p ( str... )
+    printf "%s\n" "$@"
+}
+
+pd () {
+    # pd ( str, [fd]:-1 )
+    printf "%s\n" "$1" >&"${2:-1}"
+}
+
+log () {
+    # log ( str... )
+    pd "ata: $*" 2
+}
+
+err () {
+    # err ( str... )
+    log "$@"
+    exit 1
+}
+
+main () {
+    [ -f "$1" ] || err "$1 not a file"
+    [ -d "$2" ] || err "destination $2 not a directory"
+    case $2 in
+        /*)
+            :
+        ;;
+        *)
+             err "$2 needs to be a fully qualified path"
+        ;;
+    esac
+
+    while read -r l; do
+        ATA_SKIP_REBUILD=1 DESTDIR="$2" ATA_TREE=/ata/tree ATA_WORLDS=/ata/worlds ata install "$l"
+    done < "$1"
+
+    DESTDIR="$2" ATA_TREE=/ata/tree ATA_WORLDS=/ata/worlds ata world build "$1"
+    id=$(sort -u "$1" | sha256sum)
+    id=${id%% *}
+    ln -sf "$id" "$2/ata/worlds/fhs"
+    ln -sf ata/worlds/fhs "$2/usr"
+    ln -sf usr/bin "$2/bin"
+    ln -sf usr/lib "$2/lib"
+    ln -sf usr/etc "$2/etc"
+    mkdir -p "$2/ata/src"
+    mkdir -p "$2/etc"
+    mkdir -p "$2/dev"
+    mkdir -p "$2/proc"
+    mkdir -p "$2/run"
+    mkdir -p "$2/sys"
+    mkdir -p "$2/tmp"
+    git clone https://github.com/linux-strata/ata "$2/ata/src"    
+}
+
+main "$@"

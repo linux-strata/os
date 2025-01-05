@@ -36,10 +36,10 @@ main () {
     esac
 
     while read -r l; do
-        ATA_SKIP_REBUILD=1 DESTDIR="$2" ATA_TREE=/ata/tree ATA_WORLDS=/ata/worlds ata install "$l"
+        ATA_SKIP_REBUILD=1 DESTDIR="$2" ATA_TREE=/ata/pkg ATA_WORLDS=/ata/worlds ata install "$l"
     done < "$1"
 
-    DESTDIR="$2" ATA_TREE=/ata/tree ATA_WORLDS=/ata/worlds ata world build "$1"
+    DESTDIR="$2" ATA_TREE=/ata/pkg ATA_WORLDS=/ata/worlds ata world build "$1"
     id=$(sort -u "$1" | sha256sum)
     id=${id%% *}
     ln -sf "$id" "$2/ata/worlds/fhs"
